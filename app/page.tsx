@@ -226,7 +226,7 @@ export default function HomePage() {
   return (
     <main
       dir={isAr ? 'rtl' : 'ltr'}
-      className="min-h-screen overflow-hidden bg-[#f6fbf7] pb-24 text-slate-950"
+      className="min-h-screen overflow-hidden bg-[#f6fbf7] text-slate-950"
     >
       <section className="relative">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-950 via-emerald-900 to-teal-700" />
@@ -484,15 +484,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/20 bg-white/95 p-3 shadow-2xl backdrop-blur md:hidden">
-        <a
-          href="#donate"
-          className="block w-full rounded-2xl bg-emerald-800 py-4 text-center text-lg font-black text-white shadow-xl"
-        >
-          ❤️ {t.donateNow} — ${cleanAmount}
-        </a>
-      </div>
     </main>
   );
 }
