@@ -56,10 +56,6 @@ export default function PayPalDonate({ amount }: { amount: number }) {
   amountRef.current = amount;
 
   useEffect(() => {
-    trackCheckout('amount_selected', amount);
-  }, [amount]);
-
-  useEffect(() => {
     let cancelled = false;
 
     const renderButtons = () => {

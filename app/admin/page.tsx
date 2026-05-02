@@ -7,14 +7,13 @@ import {
   CheckCircle2,
   Clock,
   Eye,
-  Globe2,
   Heart,
   LogOut,
-  MonitorSmartphone,
+  Moon,
   Plus,
   RefreshCw,
   ShieldCheck,
-  Smartphone,
+  Sun,
   Users,
   Wallet,
   XCircle
@@ -66,6 +65,7 @@ type AdminStats = {
 };
 
 export default function AdminPage() {
+  const [dark, setDark] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
   const [authed, setAuthed] = useState(false);
   const [password, setPassword] = useState('');
@@ -95,6 +95,12 @@ export default function AdminPage() {
     basket_min_usd: '30',
     basket_max_usd: '40'
   });
+
+  const pageBg = dark ? 'bg-slate-950 text-white' : 'bg-slate-50 text-slate-950';
+  const cardBg = dark ? 'bg-slate-900 ring-white/10' : 'bg-white ring-black/5';
+  const softBg = dark ? 'bg-slate-800' : 'bg-slate-50';
+  const textMuted = dark ? 'text-slate-400' : 'text-slate-500';
+  const textMain = dark ? 'text-white' : 'text-slate-950';
 
   async function load(pass = password) {
     if (!pass) return false;
@@ -144,15 +150,22 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
-    const saved = localStorage.getItem('adminPassword');
+    const savedPassword = localStorage.getItem('adminPassword');
+    const savedTheme = localStorage.getItem('adminTheme');
 
-    if (saved) {
-      setPassword(saved);
-      load(saved);
+    if (savedTheme === 'dark') setDark(true);
+
+    if (savedPassword) {
+      setPassword(savedPassword);
+      load(savedPassword);
     } else {
       setCheckingSession(false);
     }
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem('adminTheme', dark ? 'dark' : 'light');
+  }, [dark]);
 
   useEffect(() => {
     if (!authed) return;
@@ -332,7 +345,7 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 pb-10">
+    <main className={`min-h-screen pb-10 transition ${pageBg}`}>
       <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-6">
         <header className="overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-950 via-emerald-900 to-teal-700 p-5 text-white shadow-xl sm:p-7">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
@@ -361,6 +374,14 @@ export default function AdminPage() {
 
             <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
               <button
+                onClick={() => setDark(!dark)}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white/10 px-4 py-3 text-sm font-bold text-white backdrop-blur transition hover:bg-white/20"
+              >
+                {dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                {dark ? 'Light' : 'Dark'}
+              </button>
+
+              <button
                 onClick={() => load()}
                 disabled={loading}
                 className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white/10 px-4 py-3 text-sm font-bold text-white backdrop-blur transition hover:bg-white/20 disabled:opacity-50"
@@ -371,7 +392,7 @@ export default function AdminPage() {
 
               <button
                 onClick={logout}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-red-600"
+                className="col-span-2 inline-flex items-center justify-center gap-2 rounded-2xl bg-red-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-red-600 sm:col-span-1"
               >
                 <LogOut className="h-5 w-5" />
                 Logout
@@ -380,7 +401,7 @@ export default function AdminPage() {
           </div>
         </header>
 
-        <div className="sticky top-0 z-40 -mx-4 mt-4 overflow-x-auto bg-slate-50/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:bg-transparent sm:px-0">
+        <div className={`sticky top-0 z-40 -mx-4 mt-4 overflow-x-auto px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:bg-transparent sm:px-0 ${dark ? 'bg-slate-950/95' : 'bg-slate-50/95'}`}>
           <div className="flex min-w-max gap-2">
             {[
               ['overview', 'Overview'],
@@ -395,7 +416,9 @@ export default function AdminPage() {
                 className={`rounded-2xl px-5 py-3 text-sm font-black transition sm:text-base ${
                   tab === key
                     ? 'bg-emerald-800 text-white shadow-lg'
-                    : 'bg-white text-slate-700 shadow-sm hover:bg-slate-100'
+                    : dark
+                      ? 'bg-slate-900 text-slate-200 shadow-sm hover:bg-slate-800'
+                      : 'bg-white text-slate-700 shadow-sm hover:bg-slate-100'
                 }`}
               >
                 {label}
@@ -407,100 +430,104 @@ export default function AdminPage() {
         {tab === 'overview' && (
           <>
             <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-              <Card icon={<Wallet />} label="Total raised" value={`$${raised.toFixed(2)}`} />
-              <Card icon={<Eye />} label="Total visitors" value={String(visits)} />
-              <Card icon={<Users />} label="Today visitors" value={String(todayVisitors)} />
-              <Card icon={<Activity />} label="Online now" value={String(onlineNow)} live />
-              <Card icon={<Heart />} label="Donations" value={String(donations.length)} />
+              <Card dark={dark} icon={<Wallet />} label="Total raised" value={`$${raised.toFixed(2)}`} />
+              <Card dark={dark} icon={<Eye />} label="Total visitors" value={String(visits)} />
+              <Card dark={dark} icon={<Users />} label="Today visitors" value={String(todayVisitors)} />
+              <Card dark={dark} icon={<Activity />} label="Online now" value={String(onlineNow)} live />
+              <Card dark={dark} icon={<Heart />} label="Donations" value={String(donations.length)} />
             </div>
 
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <Card icon={<Clock />} label="Trying to donate now" value={String(tryingToDonateNow)} live />
-              <Card icon={<BarChart3 />} label="Started checkout today" value={String(startedCheckoutToday)} />
-              <Card icon={<CheckCircle2 />} label="Completed today" value={String(completedCheckoutToday)} />
-              <Card icon={<XCircle />} label="Abandoned checkout" value={String(abandonedCheckoutToday)} danger />
-            </div>
-
-            <section className="mt-6 rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-black/5 sm:p-6">
+            <section className={`mt-6 rounded-[2rem] p-5 shadow-sm ring-1 sm:p-6 ${cardBg}`}>
               <SectionHeader
                 title="Latest donations"
                 description="يتم تحديث التبرعات تلقائيًا كل 5 ثوانٍ."
                 live
+                dark={dark}
               />
 
-              <DonationCards donations={donations.slice(0, 6)} />
+              <DonationCards donations={donations.slice(0, 6)} dark={dark} />
               <div className="hidden md:block">
-                <DonationTable donations={donations.slice(0, 8)} />
+                <DonationTable donations={donations.slice(0, 8)} dark={dark} />
               </div>
             </section>
           </>
         )}
 
         {tab === 'analytics' && (
-          <section className="mt-6 rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-black/5 sm:p-6">
-            <SectionHeader
-              title="Live visitors analytics"
-              description="جلسات الزوار الحالية، الدولة، الجهاز، مدة البقاء، وحالة الدفع."
-              live
-            />
-
-            <SessionCards sessions={liveSessions} />
-
-            <div className="hidden overflow-x-auto md:block">
-              <table className="mt-5 w-full min-w-[900px] text-left text-sm">
-                <thead>
-                  <tr className="text-slate-500">
-                    <th className="py-3">Country</th>
-                    <th>City</th>
-                    <th>Device</th>
-                    <th>Browser</th>
-                    <th>Checkout</th>
-                    <th>Amount</th>
-                    <th>Duration</th>
-                    <th>Last seen</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {liveSessions.length === 0 && (
-                    <tr>
-                      <td colSpan={8} className="py-8 text-center text-slate-400">
-                        No live sessions yet.
-                      </td>
-                    </tr>
-                  )}
-
-                  {liveSessions.map(s => (
-                    <tr key={s.session_id} className="border-t border-slate-100">
-                      <td className="py-4 font-bold">{s.country || '-'}</td>
-                      <td>{s.city || '-'}</td>
-                      <td>{s.device || '-'}</td>
-                      <td>{s.browser || '-'}</td>
-                      <td><CheckoutBadge status={s.checkout_status || 'none'} /></td>
-                      <td>{s.selected_amount_usd ? `$${Number(s.selected_amount_usd).toFixed(2)}` : '-'}</td>
-                      <td>{formatDuration(s.duration_seconds || 0)}</td>
-                      <td>{timeAgo(s.last_seen)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <Card dark={dark} icon={<Clock />} label="Trying to donate now" value={String(tryingToDonateNow)} live />
+              <Card dark={dark} icon={<BarChart3 />} label="Started checkout today" value={String(startedCheckoutToday)} />
+              <Card dark={dark} icon={<CheckCircle2 />} label="Completed today" value={String(completedCheckoutToday)} />
+              <Card dark={dark} icon={<XCircle />} label="Abandoned checkout" value={String(abandonedCheckoutToday)} danger />
             </div>
-          </section>
+
+            <section className={`mt-6 rounded-[2rem] p-5 shadow-sm ring-1 sm:p-6 ${cardBg}`}>
+              <SectionHeader
+                title="Live visitors analytics"
+                description="جلسات الزوار الحالية، الدولة، الجهاز، مدة البقاء، وحالة الدفع."
+                live
+                dark={dark}
+              />
+
+              <SessionCards sessions={liveSessions} dark={dark} />
+
+              <div className="hidden overflow-x-auto md:block">
+                <table className="mt-5 w-full min-w-[900px] text-left text-sm">
+                  <thead>
+                    <tr className={textMuted}>
+                      <th className="py-3">Country</th>
+                      <th>City</th>
+                      <th>Device</th>
+                      <th>Browser</th>
+                      <th>Checkout</th>
+                      <th>Amount</th>
+                      <th>Duration</th>
+                      <th>Last seen</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {liveSessions.length === 0 && (
+                      <tr>
+                        <td colSpan={8} className="py-8 text-center text-slate-400">
+                          No live sessions yet.
+                        </td>
+                      </tr>
+                    )}
+
+                    {liveSessions.map(s => (
+                      <tr key={s.session_id} className={dark ? 'border-t border-slate-800' : 'border-t border-slate-100'}>
+                        <td className="py-4 font-bold">{s.country || '-'}</td>
+                        <td>{s.city || '-'}</td>
+                        <td>{s.device || '-'}</td>
+                        <td>{s.browser || '-'}</td>
+                        <td><CheckoutBadge status={s.checkout_status || 'none'} /></td>
+                        <td>{s.selected_amount_usd ? `$${Number(s.selected_amount_usd).toFixed(2)}` : '-'}</td>
+                        <td>{formatDuration(s.duration_seconds || 0)}</td>
+                        <td>{timeAgo(s.last_seen)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </>
         )}
 
         {tab === 'campaigns' && (
           <>
-            <section className="mt-6 rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-black/5 sm:p-6">
+            <section className={`mt-6 rounded-[2rem] p-5 shadow-sm ring-1 sm:p-6 ${cardBg}`}>
               <div className="flex items-center gap-3">
                 <div className="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-100 text-emerald-800">
                   <Plus className="h-6 w-6" />
                 </div>
 
                 <div>
-                  <h2 className="text-2xl font-black text-slate-950">
+                  <h2 className={`text-2xl font-black ${textMain}`}>
                     Create new campaign
                   </h2>
-                  <p className="text-sm text-slate-500">
+                  <p className={`text-sm ${textMuted}`}>
                     إنشاء حملة جديدة سيغلق الحملة النشطة الحالية.
                   </p>
                 </div>
@@ -510,7 +537,11 @@ export default function AdminPage() {
                 {Object.entries(form).map(([k, v]) => (
                   <input
                     key={k}
-                    className="rounded-2xl border border-slate-200 bg-slate-50 p-4 outline-none transition focus:border-emerald-700 focus:bg-white"
+                    className={`rounded-2xl border p-4 outline-none transition focus:border-emerald-700 ${
+                      dark
+                        ? 'border-slate-700 bg-slate-800 text-white'
+                        : 'border-slate-200 bg-slate-50 text-slate-950 focus:bg-white'
+                    }`}
                     placeholder={k}
                     value={v}
                     onChange={e => setForm({ ...form, [k]: e.target.value })}
@@ -526,40 +557,34 @@ export default function AdminPage() {
               </button>
             </section>
 
-            <section className="mt-6 rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-black/5 sm:p-6">
-              <h2 className="text-2xl font-black text-slate-950">Campaigns</h2>
+            <section className={`mt-6 rounded-[2rem] p-5 shadow-sm ring-1 sm:p-6 ${cardBg}`}>
+              <h2 className={`text-2xl font-black ${textMain}`}>Campaigns</h2>
 
               <div className="mt-4 space-y-3 md:hidden">
                 {campaigns.map(c => (
-                  <div key={c.id} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                  <div key={c.id} className={`rounded-2xl border p-4 ${dark ? 'border-slate-800 bg-slate-800' : 'border-slate-100 bg-slate-50'}`}>
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="font-black text-slate-950">{c.title}</p>
-                        <p className="mt-1 text-sm text-slate-500">${c.goal_usd}</p>
+                        <p className={`font-black ${textMain}`}>{c.title}</p>
+                        <p className={`mt-1 text-sm ${textMuted}`}>${c.goal_usd}</p>
                       </div>
 
                       <StatusBadge status={c.status} />
                     </div>
 
-                    <p className="mt-3 text-xs text-slate-500">
+                    <p className={`mt-3 text-xs ${textMuted}`}>
                       {new Date(c.created_at).toLocaleString()}
                     </p>
 
                     <div className="mt-4 flex gap-2">
                       {c.status !== 'active' && (
-                        <button
-                          onClick={() => activateCampaign(c.id)}
-                          className="flex-1 rounded-xl bg-emerald-700 px-3 py-3 text-sm font-bold text-white"
-                        >
+                        <button onClick={() => activateCampaign(c.id)} className="flex-1 rounded-xl bg-emerald-700 px-3 py-3 text-sm font-bold text-white">
                           Activate
                         </button>
                       )}
 
                       {c.status === 'active' && (
-                        <button
-                          onClick={() => closeCampaign(c.id)}
-                          className="flex-1 rounded-xl bg-red-600 px-3 py-3 text-sm font-bold text-white"
-                        >
+                        <button onClick={() => closeCampaign(c.id)} className="flex-1 rounded-xl bg-red-600 px-3 py-3 text-sm font-bold text-white">
                           Close
                         </button>
                       )}
@@ -571,7 +596,7 @@ export default function AdminPage() {
               <div className="hidden overflow-x-auto md:block">
                 <table className="mt-4 w-full min-w-[760px] text-left text-sm">
                   <thead>
-                    <tr className="text-slate-500">
+                    <tr className={textMuted}>
                       <th className="py-3">Title</th>
                       <th>Goal</th>
                       <th>Status</th>
@@ -582,26 +607,20 @@ export default function AdminPage() {
 
                   <tbody>
                     {campaigns.map(c => (
-                      <tr key={c.id} className="border-t border-slate-100">
-                        <td className="py-4 font-black text-slate-950">{c.title}</td>
+                      <tr key={c.id} className={dark ? 'border-t border-slate-800' : 'border-t border-slate-100'}>
+                        <td className={`py-4 font-black ${textMain}`}>{c.title}</td>
                         <td>${c.goal_usd}</td>
                         <td><StatusBadge status={c.status} /></td>
                         <td>{new Date(c.created_at).toLocaleString()}</td>
                         <td className="flex gap-2 py-3">
                           {c.status !== 'active' && (
-                            <button
-                              onClick={() => activateCampaign(c.id)}
-                              className="rounded-xl bg-emerald-700 px-3 py-2 font-bold text-white"
-                            >
+                            <button onClick={() => activateCampaign(c.id)} className="rounded-xl bg-emerald-700 px-3 py-2 font-bold text-white">
                               Activate
                             </button>
                           )}
 
                           {c.status === 'active' && (
-                            <button
-                              onClick={() => closeCampaign(c.id)}
-                              className="rounded-xl bg-red-600 px-3 py-2 font-bold text-white"
-                            >
+                            <button onClick={() => closeCampaign(c.id)} className="rounded-xl bg-red-600 px-3 py-2 font-bold text-white">
                               Close
                             </button>
                           )}
@@ -616,33 +635,43 @@ export default function AdminPage() {
         )}
 
         {tab === 'donations' && (
-          <section className="mt-6 rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-black/5 sm:p-6">
+          <section className={`mt-6 rounded-[2rem] p-5 shadow-sm ring-1 sm:p-6 ${cardBg}`}>
             <SectionHeader
               title="All donations"
               description="القائمة تتحدث تلقائيًا بدون إعادة تحميل الصفحة."
               live
+              dark={dark}
             />
 
-            <DonationCards donations={donations} />
+            <DonationCards donations={donations} dark={dark} />
             <div className="hidden md:block">
-              <DonationTable donations={donations} />
+              <DonationTable donations={donations} dark={dark} />
             </div>
           </section>
         )}
 
         {tab === 'settings' && (
-          <section className="mt-6 rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-black/5 sm:p-6">
-            <h2 className="text-2xl font-black text-slate-950">Settings</h2>
-            <p className="mt-2 text-slate-500">
+          <section className={`mt-6 rounded-[2rem] p-5 shadow-sm ring-1 sm:p-6 ${cardBg}`}>
+            <h2 className={`text-2xl font-black ${textMain}`}>Settings</h2>
+            <p className={`mt-2 ${textMuted}`}>
               إعدادات إدارية للنظام.
             </p>
 
-            <button
-              onClick={resetVisits}
-              className="mt-5 w-full rounded-2xl bg-red-600 px-6 py-4 font-black text-white shadow-lg transition hover:bg-red-700 sm:w-auto"
-            >
-              Reset visits
-            </button>
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+              <button
+                onClick={() => setDark(!dark)}
+                className="rounded-2xl bg-slate-800 px-6 py-4 font-black text-white shadow-lg transition hover:bg-slate-700"
+              >
+                {dark ? 'Switch to light mode' : 'Switch to dark mode'}
+              </button>
+
+              <button
+                onClick={resetVisits}
+                className="rounded-2xl bg-red-600 px-6 py-4 font-black text-white shadow-lg transition hover:bg-red-700"
+              >
+                Reset visits
+              </button>
+            </div>
           </section>
         )}
       </div>
@@ -653,17 +682,19 @@ export default function AdminPage() {
 function SectionHeader({
   title,
   description,
-  live = false
+  live = false,
+  dark = false
 }: {
   title: string;
   description: string;
   live?: boolean;
+  dark?: boolean;
 }) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h2 className="text-2xl font-black text-slate-950">{title}</h2>
-        <p className="mt-1 text-sm text-slate-500">{description}</p>
+        <h2 className={`text-2xl font-black ${dark ? 'text-white' : 'text-slate-950'}`}>{title}</h2>
+        <p className={`mt-1 text-sm ${dark ? 'text-slate-400' : 'text-slate-500'}`}>{description}</p>
       </div>
 
       {live && (
@@ -681,22 +712,20 @@ function Card({
   label,
   value,
   live = false,
-  danger = false
+  danger = false,
+  dark = false
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
   live?: boolean;
   danger?: boolean;
+  dark?: boolean;
 }) {
   return (
-    <div className="rounded-[1.6rem] bg-white p-4 shadow-sm ring-1 ring-black/5 sm:rounded-[2rem] sm:p-5">
+    <div className={`rounded-[1.6rem] p-4 shadow-sm ring-1 sm:rounded-[2rem] sm:p-5 ${dark ? 'bg-slate-900 ring-white/10' : 'bg-white ring-black/5'}`}>
       <div className="flex items-center justify-between">
-        <div
-          className={`grid h-11 w-11 place-items-center rounded-2xl [&>svg]:h-5 [&>svg]:w-5 ${
-            danger ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-800'
-          }`}
-        >
+        <div className={`grid h-11 w-11 place-items-center rounded-2xl [&>svg]:h-5 [&>svg]:w-5 ${danger ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-800'}`}>
           {icon}
         </div>
 
@@ -711,11 +740,11 @@ function Card({
         )}
       </div>
 
-      <p className="mt-4 text-sm font-bold text-slate-500">{label}</p>
+      <p className={`mt-4 text-sm font-bold ${dark ? 'text-slate-400' : 'text-slate-500'}`}>{label}</p>
 
       <div className="mt-1 flex items-center gap-2">
         {live && <span className="h-2 w-2 animate-pulse rounded-full bg-green-500" />}
-        <b className={`text-2xl font-black sm:text-3xl ${danger ? 'text-red-700' : 'text-slate-950'}`}>
+        <b className={`text-2xl font-black sm:text-3xl ${danger ? 'text-red-700' : dark ? 'text-white' : 'text-slate-950'}`}>
           {value}
         </b>
       </div>
@@ -727,13 +756,7 @@ function StatusBadge({ status }: { status: string }) {
   const active = status === 'active';
 
   return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-black ${
-        active
-          ? 'bg-emerald-100 text-emerald-800'
-          : 'bg-slate-100 text-slate-700'
-      }`}
-    >
+    <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-black ${active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'}`}>
       {active ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
       {status}
     </span>
@@ -757,23 +780,23 @@ function CheckoutBadge({ status }: { status: string }) {
   );
 }
 
-function SessionCards({ sessions }: { sessions: LiveSession[] }) {
+function SessionCards({ sessions, dark = false }: { sessions: LiveSession[]; dark?: boolean }) {
   return (
     <div className="mt-5 space-y-3 md:hidden">
       {sessions.length === 0 && (
-        <div className="rounded-2xl bg-slate-50 p-6 text-center text-slate-400">
+        <div className={`rounded-2xl p-6 text-center ${dark ? 'bg-slate-800 text-slate-400' : 'bg-slate-50 text-slate-400'}`}>
           No live sessions yet.
         </div>
       )}
 
       {sessions.map(s => (
-        <div key={s.session_id} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+        <div key={s.session_id} className={`rounded-2xl border p-4 ${dark ? 'border-slate-800 bg-slate-800' : 'border-slate-100 bg-slate-50'}`}>
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="font-black text-slate-950">
+              <p className={`font-black ${dark ? 'text-white' : 'text-slate-950'}`}>
                 {s.country || 'Unknown'} {s.city ? `— ${s.city}` : ''}
               </p>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className={`mt-1 text-xs ${dark ? 'text-slate-400' : 'text-slate-500'}`}>
                 {s.browser || '-'} · {s.device || '-'}
               </p>
             </div>
@@ -782,9 +805,9 @@ function SessionCards({ sessions }: { sessions: LiveSession[] }) {
           </div>
 
           <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-            <SmallBox label="Amount" value={s.selected_amount_usd ? `$${Number(s.selected_amount_usd).toFixed(0)}` : '-'} />
-            <SmallBox label="Duration" value={formatDuration(s.duration_seconds || 0)} />
-            <SmallBox label="Seen" value={timeAgo(s.last_seen)} />
+            <SmallBox dark={dark} label="Amount" value={s.selected_amount_usd ? `$${Number(s.selected_amount_usd).toFixed(0)}` : '-'} />
+            <SmallBox dark={dark} label="Duration" value={formatDuration(s.duration_seconds || 0)} />
+            <SmallBox dark={dark} label="Seen" value={timeAgo(s.last_seen)} />
           </div>
         </div>
       ))}
@@ -792,38 +815,38 @@ function SessionCards({ sessions }: { sessions: LiveSession[] }) {
   );
 }
 
-function SmallBox({ label, value }: { label: string; value: string }) {
+function SmallBox({ label, value, dark = false }: { label: string; value: string; dark?: boolean }) {
   return (
-    <div className="rounded-xl bg-white p-3">
+    <div className={`rounded-xl p-3 ${dark ? 'bg-slate-900' : 'bg-white'}`}>
       <p className="text-[10px] font-bold text-slate-400">{label}</p>
-      <p className="mt-1 text-sm font-black text-slate-800">{value}</p>
+      <p className={`mt-1 text-sm font-black ${dark ? 'text-white' : 'text-slate-800'}`}>{value}</p>
     </div>
   );
 }
 
-function DonationCards({ donations }: { donations: Donation[] }) {
+function DonationCards({ donations, dark = false }: { donations: Donation[]; dark?: boolean }) {
   return (
     <div className="mt-5 space-y-3 md:hidden">
       {donations.length === 0 && (
-        <div className="rounded-2xl bg-slate-50 p-6 text-center text-slate-400">
+        <div className={`rounded-2xl p-6 text-center ${dark ? 'bg-slate-800 text-slate-400' : 'bg-slate-50 text-slate-400'}`}>
           No donations yet.
         </div>
       )}
 
       {donations.map(d => (
-        <div key={d.id} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+        <div key={d.id} className={`rounded-2xl border p-4 ${dark ? 'border-slate-800 bg-slate-800' : 'border-slate-100 bg-slate-50'}`}>
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="font-black text-slate-950">
+              <p className={`font-black ${dark ? 'text-white' : 'text-slate-950'}`}>
                 {d.show_name && d.donor_name ? d.donor_name : 'Anonymous'}
               </p>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className={`mt-1 text-xs ${dark ? 'text-slate-400' : 'text-slate-500'}`}>
                 {new Date(d.created_at).toLocaleString()}
               </p>
             </div>
 
             <div className="text-right">
-              <p className="text-xl font-black text-emerald-800">
+              <p className="text-xl font-black text-emerald-500">
                 ${Number(d.amount_usd).toFixed(2)}
               </p>
               <p className="mt-1 text-xs font-bold text-slate-500">{d.currency}</p>
@@ -831,17 +854,11 @@ function DonationCards({ donations }: { donations: Donation[] }) {
           </div>
 
           <div className="mt-3 flex items-center justify-between gap-2">
-            <span
-              className={`rounded-full px-3 py-1 text-xs font-black ${
-                d.status === 'completed'
-                  ? 'bg-emerald-100 text-emerald-800'
-                  : 'bg-amber-100 text-amber-800'
-              }`}
-            >
+            <span className={`rounded-full px-3 py-1 text-xs font-black ${d.status === 'completed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
               {d.status}
             </span>
 
-            <span className="line-clamp-1 text-xs text-slate-500">
+            <span className={`line-clamp-1 text-xs ${dark ? 'text-slate-400' : 'text-slate-500'}`}>
               {d.campaigns?.title || '-'}
             </span>
           </div>
@@ -851,12 +868,12 @@ function DonationCards({ donations }: { donations: Donation[] }) {
   );
 }
 
-function DonationTable({ donations }: { donations: Donation[] }) {
+function DonationTable({ donations, dark = false }: { donations: Donation[]; dark?: boolean }) {
   return (
     <div className="overflow-x-auto">
       <table className="mt-5 w-full min-w-[760px] text-left text-sm">
         <thead>
-          <tr className="text-slate-500">
+          <tr className={dark ? 'text-slate-400' : 'text-slate-500'}>
             <th className="py-3">Donor</th>
             <th>Amount</th>
             <th>Status</th>
@@ -875,11 +892,11 @@ function DonationTable({ donations }: { donations: Donation[] }) {
           )}
 
           {donations.map(d => (
-            <tr key={d.id} className="border-t border-slate-100">
-              <td className="py-4 font-black text-slate-950">
+            <tr key={d.id} className={dark ? 'border-t border-slate-800' : 'border-t border-slate-100'}>
+              <td className={`py-4 font-black ${dark ? 'text-white' : 'text-slate-950'}`}>
                 {d.show_name && d.donor_name ? d.donor_name : 'Anonymous'}
               </td>
-              <td className="font-bold text-emerald-800">
+              <td className="font-bold text-emerald-500">
                 ${Number(d.amount_usd).toFixed(2)}
               </td>
               <td>{d.status}</td>
