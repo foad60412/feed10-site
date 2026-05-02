@@ -764,18 +764,27 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function CheckoutBadge({ status }: { status: string }) {
+  const labels: Record<string, string> = {
+    none: 'Browsing',
+    checkout_started: 'Trying now',
+    checkout_completed: 'Completed',
+    checkout_failed: 'Failed',
+    checkout_cancelled: 'Cancelled',
+    abandoned_checkout: 'Abandoned'
+  };
+
   const styles: Record<string, string> = {
     none: 'bg-slate-100 text-slate-600',
-    amount_selected: 'bg-blue-100 text-blue-700',
     checkout_started: 'bg-amber-100 text-amber-800',
     checkout_completed: 'bg-emerald-100 text-emerald-800',
     checkout_failed: 'bg-red-100 text-red-700',
-    checkout_cancelled: 'bg-slate-200 text-slate-700'
+    checkout_cancelled: 'bg-slate-200 text-slate-700',
+    abandoned_checkout: 'bg-orange-100 text-orange-800'
   };
 
   return (
     <span className={`rounded-full px-3 py-1 text-xs font-black ${styles[status] || styles.none}`}>
-      {status}
+      {labels[status] || status}
     </span>
   );
 }
