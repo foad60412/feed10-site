@@ -1,19 +1,23 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Activity,
   BarChart3,
+  CheckCircle2,
+  Clock,
   Eye,
+  Globe2,
   Heart,
   LogOut,
+  MonitorSmartphone,
   Plus,
   RefreshCw,
   ShieldCheck,
+  Smartphone,
   Users,
   Wallet,
-  XCircle,
-  CheckCircle2
+  XCircle
 } from 'lucide-react';
 
 type Campaign = {
@@ -35,6 +39,32 @@ type Donation = {
   campaigns?: { title: string };
 };
 
+type LiveSession = {
+  id: string;
+  visitor_id: string;
+  session_id: string;
+  country: string | null;
+  city: string | null;
+  device: string | null;
+  browser: string | null;
+  path: string | null;
+  checkout_status: string | null;
+  selected_amount_usd: number | null;
+  duration_seconds: number | null;
+  first_seen: string;
+  last_seen: string;
+};
+
+type AdminStats = {
+  todayVisitors?: number;
+  onlineNow?: number;
+  tryingToDonateNow?: number;
+  startedCheckoutToday?: number;
+  completedCheckoutToday?: number;
+  abandonedCheckoutToday?: number;
+  liveSessions?: LiveSession[];
+};
+
 export default function AdminPage() {
   const [checkingSession, setCheckingSession] = useState(true);
   const [authed, setAuthed] = useState(false);
@@ -42,7 +72,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [liveLoading, setLiveLoading] = useState(false);
 
-  const [tab, setTab] = useState<'overview' | 'campaigns' | 'donations' | 'settings'>('overview');
+  const [tab, setTab] = useState<'overview' | 'analytics' | 'campaigns' | 'donations' | 'settings'>('overview');
 
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [donations, setDonations] = useState<Donation[]>([]);
@@ -50,6 +80,12 @@ export default function AdminPage() {
   const [todayVisitors, setTodayVisitors] = useState(0);
   const [onlineNow, setOnlineNow] = useState(0);
   const [raised, setRaised] = useState(0);
+
+  const [tryingToDonateNow, setTryingToDonateNow] = useState(0);
+  const [startedCheckoutToday, setStartedCheckoutToday] = useState(0);
+  const [completedCheckoutToday, setCompletedCheckoutToday] = useState(0);
+  const [abandonedCheckoutToday, setAbandonedCheckoutToday] = useState(0);
+  const [liveSessions, setLiveSessions] = useState<LiveSession[]>([]);
 
   const [form, setForm] = useState({
     title: 'Feed 10 Families in Palestine',
@@ -81,12 +117,21 @@ export default function AdminPage() {
       const dRes = await fetch('/api/admin/donations', { headers });
       const d = await dRes.json();
 
+      const sRes = await fetch('/api/admin/stats', { headers });
+      const s: AdminStats = sRes.ok ? await sRes.json() : {};
+
       setCampaigns(c.campaigns || []);
       setVisits(c.visits || 0);
-      setTodayVisitors(c.todayVisitors || 0);
-      setOnlineNow(c.onlineNow || 0);
+      setTodayVisitors(s.todayVisitors ?? c.todayVisitors ?? 0);
+      setOnlineNow(s.onlineNow ?? c.onlineNow ?? 0);
       setRaised(Number(c.totalRaised || 0));
       setDonations(Array.isArray(d) ? d : []);
+
+      setTryingToDonateNow(s.tryingToDonateNow || 0);
+      setStartedCheckoutToday(s.startedCheckoutToday || 0);
+      setCompletedCheckoutToday(s.completedCheckoutToday || 0);
+      setAbandonedCheckoutToday(s.abandonedCheckoutToday || 0);
+      setLiveSessions(Array.isArray(s.liveSessions) ? s.liveSessions : []);
 
       setAuthed(true);
       localStorage.setItem('adminPassword', pass);
@@ -129,8 +174,6 @@ export default function AdminPage() {
           const campaignsData = await campaignsRes.json();
           setCampaigns(campaignsData.campaigns || []);
           setVisits(campaignsData.visits || 0);
-          setTodayVisitors(campaignsData.todayVisitors || 0);
-          setOnlineNow(campaignsData.onlineNow || 0);
           setRaised(Number(campaignsData.totalRaised || 0));
         }
 
@@ -139,6 +182,20 @@ export default function AdminPage() {
         if (donationsRes.ok) {
           const donationsData = await donationsRes.json();
           setDonations(Array.isArray(donationsData) ? donationsData : []);
+        }
+
+        const statsRes = await fetch('/api/admin/stats', { headers });
+
+        if (statsRes.ok) {
+          const stats: AdminStats = await statsRes.json();
+
+          setTodayVisitors(stats.todayVisitors || 0);
+          setOnlineNow(stats.onlineNow || 0);
+          setTryingToDonateNow(stats.tryingToDonateNow || 0);
+          setStartedCheckoutToday(stats.startedCheckoutToday || 0);
+          setCompletedCheckoutToday(stats.completedCheckoutToday || 0);
+          setAbandonedCheckoutToday(stats.abandonedCheckoutToday || 0);
+          setLiveSessions(Array.isArray(stats.liveSessions) ? stats.liveSessions : []);
         }
       } catch {
       } finally {
@@ -161,12 +218,6 @@ export default function AdminPage() {
     localStorage.removeItem('adminPassword');
     setAuthed(false);
     setPassword('');
-    setCampaigns([]);
-    setDonations([]);
-    setVisits(0);
-    setTodayVisitors(0);
-    setOnlineNow(0);
-    setRaised(0);
   }
 
   async function createCampaign() {
@@ -228,6 +279,8 @@ export default function AdminPage() {
     await load();
   }
 
+  const activeCampaign = useMemo(() => campaigns.find(c => c.status === 'active'), [campaigns]);
+
   if (checkingSession) {
     return (
       <main className="grid min-h-screen place-items-center bg-emerald-950 px-5 text-white">
@@ -278,8 +331,6 @@ export default function AdminPage() {
     );
   }
 
-  const activeCampaign = campaigns.find(c => c.status === 'active');
-
   return (
     <main className="min-h-screen bg-slate-50 pb-10">
       <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-6">
@@ -297,7 +348,7 @@ export default function AdminPage() {
               </h1>
 
               <p className="mt-2 text-sm leading-7 text-emerald-50/80 sm:text-base">
-                إدارة الحملات، التبرعات، زوار اليوم، والمتواجدين الآن.
+                إدارة الحملات، التبرعات، الزوار، ومحاولات الدفع.
               </p>
 
               {activeCampaign && (
@@ -333,6 +384,7 @@ export default function AdminPage() {
           <div className="flex min-w-max gap-2">
             {[
               ['overview', 'Overview'],
+              ['analytics', 'Analytics'],
               ['campaigns', 'Campaigns'],
               ['donations', 'Donations'],
               ['settings', 'Settings']
@@ -359,25 +411,22 @@ export default function AdminPage() {
               <Card icon={<Eye />} label="Total visitors" value={String(visits)} />
               <Card icon={<Users />} label="Today visitors" value={String(todayVisitors)} />
               <Card icon={<Activity />} label="Online now" value={String(onlineNow)} live />
-              <Card icon={<BarChart3 />} label="Donations" value={String(donations.length)} />
+              <Card icon={<Heart />} label="Donations" value={String(donations.length)} />
+            </div>
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <Card icon={<Clock />} label="Trying to donate now" value={String(tryingToDonateNow)} live />
+              <Card icon={<BarChart3 />} label="Started checkout today" value={String(startedCheckoutToday)} />
+              <Card icon={<CheckCircle2 />} label="Completed today" value={String(completedCheckoutToday)} />
+              <Card icon={<XCircle />} label="Abandoned checkout" value={String(abandonedCheckoutToday)} danger />
             </div>
 
             <section className="mt-6 rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-black/5 sm:p-6">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className="text-2xl font-black text-slate-950">
-                    Latest donations
-                  </h2>
-                  <p className="mt-1 text-sm text-slate-500">
-                    يتم تحديث التبرعات تلقائيًا كل 5 ثوانٍ.
-                  </p>
-                </div>
-
-                <span className="inline-flex w-fit items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-xs font-black text-emerald-800">
-                  <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-600" />
-                  Live updates
-                </span>
-              </div>
+              <SectionHeader
+                title="Latest donations"
+                description="يتم تحديث التبرعات تلقائيًا كل 5 ثوانٍ."
+                live
+              />
 
               <DonationCards donations={donations.slice(0, 6)} />
               <div className="hidden md:block">
@@ -385,6 +434,58 @@ export default function AdminPage() {
               </div>
             </section>
           </>
+        )}
+
+        {tab === 'analytics' && (
+          <section className="mt-6 rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-black/5 sm:p-6">
+            <SectionHeader
+              title="Live visitors analytics"
+              description="جلسات الزوار الحالية، الدولة، الجهاز، مدة البقاء، وحالة الدفع."
+              live
+            />
+
+            <SessionCards sessions={liveSessions} />
+
+            <div className="hidden overflow-x-auto md:block">
+              <table className="mt-5 w-full min-w-[900px] text-left text-sm">
+                <thead>
+                  <tr className="text-slate-500">
+                    <th className="py-3">Country</th>
+                    <th>City</th>
+                    <th>Device</th>
+                    <th>Browser</th>
+                    <th>Checkout</th>
+                    <th>Amount</th>
+                    <th>Duration</th>
+                    <th>Last seen</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {liveSessions.length === 0 && (
+                    <tr>
+                      <td colSpan={8} className="py-8 text-center text-slate-400">
+                        No live sessions yet.
+                      </td>
+                    </tr>
+                  )}
+
+                  {liveSessions.map(s => (
+                    <tr key={s.session_id} className="border-t border-slate-100">
+                      <td className="py-4 font-bold">{s.country || '-'}</td>
+                      <td>{s.city || '-'}</td>
+                      <td>{s.device || '-'}</td>
+                      <td>{s.browser || '-'}</td>
+                      <td><CheckoutBadge status={s.checkout_status || 'none'} /></td>
+                      <td>{s.selected_amount_usd ? `$${Number(s.selected_amount_usd).toFixed(2)}` : '-'}</td>
+                      <td>{formatDuration(s.duration_seconds || 0)}</td>
+                      <td>{timeAgo(s.last_seen)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
         )}
 
         {tab === 'campaigns' && (
@@ -516,19 +617,11 @@ export default function AdminPage() {
 
         {tab === 'donations' && (
           <section className="mt-6 rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-black/5 sm:p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-black text-slate-950">All donations</h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  القائمة تتحدث تلقائيًا بدون إعادة تحميل الصفحة.
-                </p>
-              </div>
-
-              <span className="hidden items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-xs font-black text-emerald-800 sm:inline-flex">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-600" />
-                Live
-              </span>
-            </div>
+            <SectionHeader
+              title="All donations"
+              description="القائمة تتحدث تلقائيًا بدون إعادة تحميل الصفحة."
+              live
+            />
 
             <DonationCards donations={donations} />
             <div className="hidden md:block">
@@ -557,21 +650,53 @@ export default function AdminPage() {
   );
 }
 
+function SectionHeader({
+  title,
+  description,
+  live = false
+}: {
+  title: string;
+  description: string;
+  live?: boolean;
+}) {
+  return (
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h2 className="text-2xl font-black text-slate-950">{title}</h2>
+        <p className="mt-1 text-sm text-slate-500">{description}</p>
+      </div>
+
+      {live && (
+        <span className="inline-flex w-fit items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-xs font-black text-emerald-800">
+          <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-600" />
+          Live updates
+        </span>
+      )}
+    </div>
+  );
+}
+
 function Card({
   icon,
   label,
   value,
-  live = false
+  live = false,
+  danger = false
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
   live?: boolean;
+  danger?: boolean;
 }) {
   return (
     <div className="rounded-[1.6rem] bg-white p-4 shadow-sm ring-1 ring-black/5 sm:rounded-[2rem] sm:p-5">
       <div className="flex items-center justify-between">
-        <div className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-100 text-emerald-800 [&>svg]:h-5 [&>svg]:w-5">
+        <div
+          className={`grid h-11 w-11 place-items-center rounded-2xl [&>svg]:h-5 [&>svg]:w-5 ${
+            danger ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-800'
+          }`}
+        >
           {icon}
         </div>
 
@@ -590,7 +715,9 @@ function Card({
 
       <div className="mt-1 flex items-center gap-2">
         {live && <span className="h-2 w-2 animate-pulse rounded-full bg-green-500" />}
-        <b className="text-2xl font-black text-slate-950 sm:text-3xl">{value}</b>
+        <b className={`text-2xl font-black sm:text-3xl ${danger ? 'text-red-700' : 'text-slate-950'}`}>
+          {value}
+        </b>
       </div>
     </div>
   );
@@ -610,6 +737,67 @@ function StatusBadge({ status }: { status: string }) {
       {active ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
       {status}
     </span>
+  );
+}
+
+function CheckoutBadge({ status }: { status: string }) {
+  const styles: Record<string, string> = {
+    none: 'bg-slate-100 text-slate-600',
+    amount_selected: 'bg-blue-100 text-blue-700',
+    checkout_started: 'bg-amber-100 text-amber-800',
+    checkout_completed: 'bg-emerald-100 text-emerald-800',
+    checkout_failed: 'bg-red-100 text-red-700',
+    checkout_cancelled: 'bg-slate-200 text-slate-700'
+  };
+
+  return (
+    <span className={`rounded-full px-3 py-1 text-xs font-black ${styles[status] || styles.none}`}>
+      {status}
+    </span>
+  );
+}
+
+function SessionCards({ sessions }: { sessions: LiveSession[] }) {
+  return (
+    <div className="mt-5 space-y-3 md:hidden">
+      {sessions.length === 0 && (
+        <div className="rounded-2xl bg-slate-50 p-6 text-center text-slate-400">
+          No live sessions yet.
+        </div>
+      )}
+
+      {sessions.map(s => (
+        <div key={s.session_id} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="font-black text-slate-950">
+                {s.country || 'Unknown'} {s.city ? `— ${s.city}` : ''}
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                {s.browser || '-'} · {s.device || '-'}
+              </p>
+            </div>
+
+            <CheckoutBadge status={s.checkout_status || 'none'} />
+          </div>
+
+          <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+            <SmallBox label="Amount" value={s.selected_amount_usd ? `$${Number(s.selected_amount_usd).toFixed(0)}` : '-'} />
+            <SmallBox label="Duration" value={formatDuration(s.duration_seconds || 0)} />
+            <SmallBox label="Seen" value={timeAgo(s.last_seen)} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SmallBox({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl bg-white p-3">
+      <p className="text-[10px] font-bold text-slate-400">{label}</p>
+      <p className="mt-1 text-sm font-black text-slate-800">{value}</p>
+    </div>
   );
 }
 
@@ -703,4 +891,27 @@ function DonationTable({ donations }: { donations: Donation[] }) {
       </table>
     </div>
   );
+}
+
+function formatDuration(seconds: number) {
+  if (!seconds || seconds < 1) return '0s';
+
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+
+  if (m < 1) return `${s}s`;
+  return `${m}m ${s}s`;
+}
+
+function timeAgo(date: string) {
+  const diff = Math.max(0, Math.floor((Date.now() - new Date(date).getTime()) / 1000));
+
+  if (diff < 10) return 'now';
+  if (diff < 60) return `${diff}s ago`;
+
+  const m = Math.floor(diff / 60);
+  if (m < 60) return `${m}m ago`;
+
+  const h = Math.floor(m / 60);
+  return `${h}h ago`;
 }

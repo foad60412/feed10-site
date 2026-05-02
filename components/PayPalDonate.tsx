@@ -8,6 +8,42 @@ declare global {
   }
 }
 
+function getIds() {
+  let visitorId = localStorage.getItem('visitor_id') || localStorage.getItem('visitorId');
+  let sessionId = sessionStorage.getItem('session_id');
+
+  if (!visitorId) {
+    visitorId = crypto.randomUUID();
+    localStorage.setItem('visitor_id', visitorId);
+    localStorage.setItem('visitorId', visitorId);
+  }
+
+  if (!sessionId) {
+    sessionId = crypto.randomUUID();
+    sessionStorage.setItem('session_id', sessionId);
+  }
+
+  return { visitorId, sessionId };
+}
+
+async function trackCheckout(eventType: string, amountUsd?: number, orderId?: string) {
+  try {
+    const { visitorId, sessionId } = getIds();
+
+    await fetch('/api/checkout-event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        visitorId,
+        sessionId,
+        eventType,
+        amountUsd,
+        orderId
+      })
+    });
+  } catch {}
+}
+
 export default function PayPalDonate({ amount }: { amount: number }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const paypalRef = useRef<any>(null);
@@ -20,6 +56,10 @@ export default function PayPalDonate({ amount }: { amount: number }) {
   amountRef.current = amount;
 
   useEffect(() => {
+    trackCheckout('amount_selected', amount);
+  }, [amount]);
+
+  useEffect(() => {
     let cancelled = false;
 
     const renderButtons = () => {
@@ -30,6 +70,8 @@ export default function PayPalDonate({ amount }: { amount: number }) {
 
       paypalRef.current = window.paypal.Buttons({
         createOrder: async () => {
+          await trackCheckout('checkout_started', amountRef.current);
+
           const res = await fetch('/api/paypal/create-order', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -43,8 +85,11 @@ export default function PayPalDonate({ amount }: { amount: number }) {
           if (!res.ok || !data.id) {
             const msg = data.error || 'Failed to create PayPal order';
             setError(msg);
+            await trackCheckout('checkout_failed', amountRef.current);
             throw new Error(msg);
           }
+
+          await trackCheckout('checkout_started', amountRef.current, data.id);
 
           return data.id;
         },
@@ -68,10 +113,15 @@ export default function PayPalDonate({ amount }: { amount: number }) {
           if (!res.ok) {
             const msg = result.error || 'فشل تأكيد الدفع';
             setError(msg);
+            await trackCheckout('checkout_failed', amountRef.current, data.orderID);
             return;
           }
 
-          setSuccessAmount(Number(result.amount || amountRef.current));
+          const paidAmount = Number(result.amount || amountRef.current);
+
+          await trackCheckout('checkout_completed', paidAmount, data.orderID);
+
+          setSuccessAmount(paidAmount);
           setSuccess(true);
 
           setTimeout(() => {
@@ -79,13 +129,15 @@ export default function PayPalDonate({ amount }: { amount: number }) {
           }, 3500);
         },
 
-        onCancel: () => {
+        onCancel: async () => {
           setError('');
+          await trackCheckout('checkout_cancelled', amountRef.current);
         },
 
-        onError: (err: any) => {
+        onError: async (err: any) => {
           console.error(err);
           setError('حدث خطأ في PayPal. حاول مرة أخرى أو استخدم بطاقة أخرى.');
+          await trackCheckout('checkout_failed', amountRef.current);
         }
       });
 

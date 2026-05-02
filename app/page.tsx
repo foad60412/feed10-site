@@ -14,7 +14,9 @@ import {
   Utensils,
   Wallet,
   Gift,
-  Eye
+  Eye,
+  Camera,
+  BadgeCheck
 } from 'lucide-react';
 import PayPalDonate from '../components/PayPalDonate';
 
@@ -42,11 +44,11 @@ const content = {
     language: 'English',
     brandSmall: 'مبادرة إنسانية مستقلة',
     brandMain: 'Feed 10',
-    badge: 'تبرع صغير… أثر حقيقي',
-    title: 'هذه ليست حملة فقط… هذه وجبة اليوم لعائلة محتاجة',
+    badge: 'أول جولة تبرع موثقة',
+    title: 'هذه أول جولة لإطعام 10 عائلات محتاجة',
     subtitle:
-      'تبرع بسيط قد يتحول إلى طعام حقيقي على مائدة عائلة. خلال ثوانٍ يمكنك أن تكون سببًا في فرق واضح.',
-    heroLine: '5$ فقط قد تعني وجبة اليوم.',
+      'تبرعك اليوم يساعدنا على شراء وتجهيز سلال غذائية حقيقية. بعد اكتمال الجولة، سنوثّق الشراء والتجهيز والتسليم عبر حساب TikTok والموقع.',
+    heroLine: '5$ فقط قد تكون بداية فرق حقيقي.',
     donateNow: 'تبرع الآن',
     quickDonate: 'تبرع سريع',
     chooseAmount: 'اختر مبلغ التبرع',
@@ -62,25 +64,29 @@ const content = {
     families: 'عائلات',
     basket: 'سلة غذائية',
     latest: 'آخر التبرعات',
-    noDonations: 'كن أول داعم لهذه الحملة.',
+    noDonations: 'كن أول داعم لهذه الجولة.',
     anonymous: 'فاعل خير',
     secure: 'آمن',
     completed: 'مكتمل',
     remaining: 'متبقي',
     paypalCard: 'ادفع بأمان عبر PayPal أو البطاقة.',
     trust: 'كل تبرع يظهر هنا بعد تأكيد الدفع فقط.',
-    proofTitle: 'ماذا يحدث بعد تبرعك؟',
-    proofText: 'تبرعك لا يبقى رقمًا على الشاشة. يتحول إلى مواد غذائية يتم تجهيزها وتوزيعها.',
-    step1: 'نشتري مواد غذائية أساسية',
-    step2: 'نجهز السلال الغذائية',
-    step3: 'نوزعها على عائلات محتاجة',
+    proofTitle: 'كيف سيتم توثيق هذه الجولة؟',
+    proofText:
+      'هذه أول جولة تبرع، لذلك لا نعرض توثيقًا سابقًا. بعد اكتمال المبلغ، سيتم نشر خطوات الشراء والتجهيز والتسليم بشكل محترم يحافظ على خصوصية العائلات.',
+    step1: 'نجمع التبرعات حتى اكتمال الهدف',
+    step2: 'نشتري ونجهز السلال الغذائية',
+    step3: 'نوثّق التوزيع عبر TikTok والموقع',
     trustTitle: 'لماذا يمكنك الوثوق؟',
     trust1: 'الدفع آمن عبر PayPal',
     trust2: 'لا نحفظ بيانات بطاقتك',
     trust3: 'لا نعرض تبرعات وهمية',
-    trust4: 'آخر التبرعات تظهر من قاعدة البيانات فقط',
-    urgencyTitle: 'اليوم نحاول إطعام 10 عائلات',
-    urgencyText: 'ربما المبلغ بسيط لك… لكنه قد يكون وجبة حقيقية لهم.',
+    trust4: 'التوثيق سيُنشر بعد اكتمال الجولة الأولى',
+    documentationTitle: 'التوثيق بعد اكتمال الجولة',
+    documentationText:
+      'سيتم نشر تحديثات حقيقية بعد الوصول للهدف: الشراء، تجهيز السلال، ثم التسليم، مع احترام خصوصية العائلات.',
+    urgencyTitle: 'اليوم نبدأ أول جولة لإطعام 10 عائلات',
+    urgencyText: 'ربما المبلغ بسيط لك… لكنه قد يتحول إلى سلة غذائية لعائلة محتاجة.',
     loading: 'جاري تحميل الحملة...',
     noActive: 'لا توجد حملة نشطة',
     noActiveText: 'يرجى تفعيل حملة من لوحة الإدارة.',
@@ -90,11 +96,11 @@ const content = {
     language: 'العربية',
     brandSmall: 'Independent humanitarian initiative',
     brandMain: 'Feed 10',
-    badge: 'Small donation. Real impact.',
-    title: 'This is not just a campaign… this is today’s meal for a family',
+    badge: 'First documented donation round',
+    title: 'This is our first round to feed 10 families',
     subtitle:
-      'A small donation can become real food on a family’s table. In seconds, you can create a visible difference.',
-    heroLine: 'Just $5 can mean today’s meal.',
+      'Your donation today helps us buy and prepare real food baskets. Once this round is complete, we will document the purchase, preparation, and delivery on TikTok and the website.',
+    heroLine: 'Just $5 can be the beginning of real impact.',
     donateNow: 'Donate now',
     quickDonate: 'Quick donation',
     chooseAmount: 'Choose amount',
@@ -110,25 +116,29 @@ const content = {
     families: 'Families',
     basket: 'Food basket',
     latest: 'Recent donations',
-    noDonations: 'Be the first supporter.',
+    noDonations: 'Be the first supporter of this round.',
     anonymous: 'Anonymous',
     secure: 'Secure',
     completed: 'Completed',
     remaining: 'Remaining',
     paypalCard: 'Pay securely with PayPal or card.',
     trust: 'Donations appear here only after payment confirmation.',
-    proofTitle: 'What happens after you donate?',
-    proofText: 'Your donation does not stay as a number. It becomes food items prepared and delivered.',
-    step1: 'We buy essential food items',
-    step2: 'We prepare food baskets',
-    step3: 'We deliver them to families in need',
+    proofTitle: 'How will this round be documented?',
+    proofText:
+      'This is the first donation round, so we are not showing previous delivery proof. After the goal is completed, we will publish respectful updates showing purchase, preparation, and delivery.',
+    step1: 'We collect donations until the goal is reached',
+    step2: 'We buy and prepare food baskets',
+    step3: 'We document delivery on TikTok and the website',
     trustTitle: 'Why trust this?',
     trust1: 'Secure PayPal payment',
     trust2: 'We do not store card details',
     trust3: 'No fake donations are shown',
-    trust4: 'Recent donations come from the database only',
-    urgencyTitle: 'Today we are trying to feed 10 families',
-    urgencyText: 'This amount may be small for you… but it can be a real meal for them.',
+    trust4: 'Documentation will be published after the first round',
+    documentationTitle: 'Documentation after completion',
+    documentationText:
+      'Real updates will be published after reaching the goal: purchase, basket preparation, and delivery while respecting families’ privacy.',
+    urgencyTitle: 'Today we begin the first round to feed 10 families',
+    urgencyText: 'This amount may be small for you… but it can become a food basket for a family in need.',
     loading: 'Loading campaign...',
     noActive: 'No active campaign',
     noActiveText: 'Please activate a campaign from the admin dashboard.',
@@ -187,13 +197,40 @@ export default function HomePage() {
 
   useEffect(() => {
     refresh();
+  }, [refresh]);
 
-    let visitorId = localStorage.getItem('visitorId');
+  useEffect(() => {
+    let visitorId = localStorage.getItem('visitor_id');
+    let oldVisitorId = localStorage.getItem('visitorId');
+    let sessionId = sessionStorage.getItem('session_id');
+
+    if (!visitorId && oldVisitorId) {
+      visitorId = oldVisitorId;
+      localStorage.setItem('visitor_id', visitorId);
+    }
 
     if (!visitorId) {
       visitorId = crypto.randomUUID();
+      localStorage.setItem('visitor_id', visitorId);
       localStorage.setItem('visitorId', visitorId);
     }
+
+    if (!sessionId) {
+      sessionId = crypto.randomUUID();
+      sessionStorage.setItem('session_id', sessionId);
+    }
+
+    const trackSession = () => {
+      fetch('/api/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          visitorId,
+          sessionId,
+          path: window.location.pathname
+        })
+      }).catch(() => {});
+    };
 
     const trackVisit = () => {
       fetch('/api/track', {
@@ -203,10 +240,16 @@ export default function HomePage() {
       }).catch(() => {});
     };
 
+    trackSession();
     trackVisit();
-    const interval = setInterval(trackVisit, 30000);
+
+    const interval = setInterval(() => {
+      trackSession();
+      trackVisit();
+    }, 30000);
+
     return () => clearInterval(interval);
-  }, [refresh]);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('donorName', donorName.trim());
@@ -354,6 +397,14 @@ export default function HomePage() {
               <ProofCard number="3" text={t.step3} />
             </div>
           </div>
+
+          <div className="mt-6 rounded-[1.7rem] bg-amber-50 p-5 ring-1 ring-amber-100">
+            <div className="flex items-center gap-3">
+              <Camera className="h-6 w-6 text-amber-700" />
+              <b className="text-amber-950">{t.documentationTitle}</b>
+            </div>
+            <p className="mt-3 leading-8 text-amber-900">{t.documentationText}</p>
+          </div>
         </div>
       </section>
 
@@ -366,7 +417,7 @@ export default function HomePage() {
             <TrustRow icon={<Lock />} text={t.trust1} />
             <TrustRow icon={<Wallet />} text={t.trust2} />
             <TrustRow icon={<Eye />} text={t.trust3} />
-            <TrustRow icon={<CheckCircle2 />} text={t.trust4} />
+            <TrustRow icon={<BadgeCheck />} text={t.trust4} />
           </div>
 
           <div className="mt-6 rounded-2xl bg-slate-950 p-5 text-white">
